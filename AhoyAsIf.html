@@ -55816,8 +55816,8 @@ Present your solutions. The guilty party speaks last.`
       /* @__PURE__ */ import_react.default.createElement("p", { style: { fontSize: 15, color: T3.deckWhite, margin: "10px 0 6px", lineHeight: 1.6 } }, "Roster confirmed: ", /* @__PURE__ */ import_react.default.createElement("strong", null, activeCharacters ? activeCharacters.length : CHARACTERS.length, " characters"), " active tonight. Draw the victim and murderer at random from the required players."),
       /* @__PURE__ */ import_react.default.createElement("p", { style: { fontSize: 13, color: T3.deckWhiteDim, margin: "0 0 18px", fontStyle: "italic" } }, "The draw happens on this device \u2014 the result is hidden from this screen too."),
       /* @__PURE__ */ import_react.default.createElement("div", { style: { display: "flex", gap: 10 } }, /* @__PURE__ */ import_react.default.createElement("div", { style: { flex: 1 } }, /* @__PURE__ */ import_react.default.createElement(PrimaryButton, { full: true, onClick: () => {
+        generateForensicReportPDF();
         assignRoles(activeCharacters);
-        setTimeout(() => generateForensicReportPDF(), 500);
       } }, "Draw victim & murderer")), /* @__PURE__ */ import_react.default.createElement(SecondaryButton, { onClick: onShowRoster }, "Edit roster"))
     ), rolesAssigned && !revealed && /* @__PURE__ */ import_react.default.createElement(
       "div",
