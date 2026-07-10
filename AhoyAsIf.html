@@ -22651,6 +22651,82 @@
       }
     )), /* @__PURE__ */ import_react.default.createElement(PrimaryButton, { full: true, onClick: () => setSubmitted(true), disabled: !whodunit.trim() }, "Lock in my accusation"));
   }
+  function RosterSetupScreen({ allCharacters, onConfirm }) {
+    const [active, setActive] = (0, import_react.useState)(
+      () => new Set(allCharacters.filter((c) => c.required).map((c) => c.name))
+    );
+    const toggle = (name) => {
+      const c = allCharacters.find((ch) => ch.name === name);
+      if (c && c.required) return;
+      setActive((prev) => {
+        const next = new Set(prev);
+        next.has(name) ? next.delete(name) : next.add(name);
+        return next;
+      });
+    };
+    const required = allCharacters.filter((c) => c.required);
+    const optional = allCharacters.filter((c) => !c.required);
+    return /* @__PURE__ */ import_react.default.createElement(PageShell, { maxWidth: 560 }, /* @__PURE__ */ import_react.default.createElement(Eyebrow, { color: T.foam }, /* @__PURE__ */ import_react.default.createElement(Anchor, null), "Tonight's roster"), /* @__PURE__ */ import_react.default.createElement("h1", { style: { ...display, fontSize: 24, fontWeight: 700, margin: "10px 0 6px", color: T.deckWhite, textTransform: "uppercase" } }, "Who's Playing Tonight?"), /* @__PURE__ */ import_react.default.createElement("p", { style: { fontSize: 14, color: T.deckWhiteDim, marginBottom: "1.25rem", lineHeight: 1.6, fontStyle: "italic" } }, "Required characters are always in. Toggle optional characters on or off based on your guest count."), /* @__PURE__ */ import_react.default.createElement("div", { style: { marginBottom: "1.25rem" } }, /* @__PURE__ */ import_react.default.createElement(Eyebrow, null, "Required \u2014 always in"), required.map((c) => /* @__PURE__ */ import_react.default.createElement("div", { key: c.name, style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 12,
+      padding: "10px 14px",
+      background: "rgba(111,191,168,0.1)",
+      border: `1px solid rgba(111,191,168,0.3)`,
+      borderRadius: 6,
+      marginTop: 6
+    } }, /* @__PURE__ */ import_react.default.createElement("div", { style: {
+      width: 20,
+      height: 20,
+      borderRadius: 4,
+      background: T.foam,
+      flexShrink: 0,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: 13,
+      color: T.harbor,
+      fontWeight: 700
+    } }, "\u2713"), /* @__PURE__ */ import_react.default.createElement("div", null, /* @__PURE__ */ import_react.default.createElement("div", { style: { ...display, fontSize: 14, fontWeight: 600, color: T.deckWhite, textTransform: "uppercase" } }, c.name), /* @__PURE__ */ import_react.default.createElement("div", { style: { fontSize: 12, color: T.deckWhiteDim, fontStyle: "italic" } }, c.role))))), /* @__PURE__ */ import_react.default.createElement("div", { style: { marginBottom: "1.5rem" } }, /* @__PURE__ */ import_react.default.createElement(Eyebrow, null, "Optional \u2014 tap to toggle"), optional.map((c) => {
+      const isOn = active.has(c.name);
+      return /* @__PURE__ */ import_react.default.createElement(
+        "button",
+        {
+          key: c.name,
+          onClick: () => toggle(c.name),
+          style: {
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            width: "100%",
+            textAlign: "left",
+            padding: "10px 14px",
+            background: isOn ? "rgba(201,162,75,0.08)" : "rgba(243,239,227,0.04)",
+            border: `1px solid ${isOn ? "rgba(201,162,75,0.4)" : "rgba(243,239,227,0.12)"}`,
+            borderRadius: 6,
+            marginTop: 6,
+            cursor: "pointer"
+          }
+        },
+        /* @__PURE__ */ import_react.default.createElement("div", { style: {
+          width: 20,
+          height: 20,
+          borderRadius: 4,
+          background: isOn ? T.brass : "transparent",
+          border: `2px solid ${isOn ? T.brass : "rgba(243,239,227,0.35)"}`,
+          flexShrink: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 13,
+          color: T.harbor,
+          fontWeight: 700,
+          transition: "all 0.15s"
+        } }, isOn ? "\u2713" : ""),
+        /* @__PURE__ */ import_react.default.createElement("div", null, /* @__PURE__ */ import_react.default.createElement("div", { style: { ...display, fontSize: 14, fontWeight: 600, color: isOn ? T.deckWhite : T.deckWhiteDim, textTransform: "uppercase" } }, c.name), /* @__PURE__ */ import_react.default.createElement("div", { style: { fontSize: 12, color: T.deckWhiteDim, fontStyle: "italic" } }, c.role))
+      );
+    })), /* @__PURE__ */ import_react.default.createElement("div", { style: { background: T.porthole, border: `1px solid rgba(243,239,227,0.15)`, borderRadius: 8, padding: "0.75rem 1rem", marginBottom: "1.25rem" } }, /* @__PURE__ */ import_react.default.createElement("p", { style: { fontSize: 13, color: T.deckWhiteDim, margin: 0, lineHeight: 1.5 } }, /* @__PURE__ */ import_react.default.createElement("strong", { style: { color: T.deckWhite } }, active.size, " characters active"), " \u2014 ", required.length, " required + ", active.size - required.length, " optional.", active.size < required.length + 1 ? "" : " Ready to sail.")), /* @__PURE__ */ import_react.default.createElement(PrimaryButton, { full: true, onClick: () => onConfirm([...active]) }, "Confirm roster & continue"));
+  }
   function PlayerView({ character, gameState, onChangeCharacter, activeCharactersList }) {
     const c = CHARACTERS.find((ch) => ch.name === character);
     if (!c) return null;
@@ -22846,10 +22922,22 @@
       window.location.reload();
     } }, "Reset connection"));
     if (!loaded) return /* @__PURE__ */ import_react.default.createElement(PageShell, null, /* @__PURE__ */ import_react.default.createElement("p", { style: { textAlign: "center", color: T.deckWhiteDim, fontStyle: "italic" } }, "Connecting..."));
-    if (mode === "host") return /* @__PURE__ */ import_react.default.createElement(HostView, { state, advancePhase, assignRoles, triggerReveal, resetGame, onExit: () => setMode(null) });
+    if (showRosterScreen) {
+      return /* @__PURE__ */ import_react.default.createElement(
+        RosterSetupScreen,
+        {
+          allCharacters: CHARACTERS,
+          onConfirm: (activeNames) => {
+            confirmRoster(activeNames);
+            setShowRosterScreen(false);
+          }
+        }
+      );
+    }
+    if (mode === "host") return /* @__PURE__ */ import_react.default.createElement(HostView, { state, advancePhase, assignRoles, triggerReveal, resetGame, onExit: () => setMode(null), confirmRoster, onShowRoster: () => setShowRosterScreen(true) });
     if (mode === "player") {
-      if (!character) return /* @__PURE__ */ import_react.default.createElement(CharacterPicker, { onPick: (name) => setCharacter(name) });
-      return /* @__PURE__ */ import_react.default.createElement(PlayerView, { character, gameState: state, onChangeCharacter: () => setCharacter(null) });
+      if (!character) return /* @__PURE__ */ import_react.default.createElement(CharacterPicker, { onPick: (name) => setCharacter(name), activeCharacters: state.activeCharacters });
+      return /* @__PURE__ */ import_react.default.createElement(PlayerView, { character, gameState: state, onChangeCharacter: () => setCharacter(null), activeCharactersList: state.activeCharacters });
     }
     return /* @__PURE__ */ import_react.default.createElement(PageShell, { maxWidth: 420 }, /* @__PURE__ */ import_react.default.createElement("div", { style: { textAlign: "center" } }, /* @__PURE__ */ import_react.default.createElement(Eyebrow, { color: T.foam }, /* @__PURE__ */ import_react.default.createElement(Anchor, null), "MS Sapphire Wanderer"), /* @__PURE__ */ import_react.default.createElement("h1", { style: { ...display, fontSize: 28, fontWeight: 700, margin: "12px 0 8px", color: T.deckWhite, textTransform: "uppercase", lineHeight: 1.15 } }, "Ahoy,", /* @__PURE__ */ import_react.default.createElement("br", null), "As If!"), /* @__PURE__ */ import_react.default.createElement("p", { style: { fontSize: 15, color: T.deckWhiteDim, marginBottom: "2rem", lineHeight: 1.6, fontStyle: "italic" } }, "Are you running the party, or playing a character tonight?"), /* @__PURE__ */ import_react.default.createElement("div", { style: { marginBottom: 12 } }, /* @__PURE__ */ import_react.default.createElement(PrimaryButton, { full: true, onClick: () => setMode("host") }, "I'm hosting \u2014 open the bridge")), /* @__PURE__ */ import_react.default.createElement(SecondaryButton, { full: true, onClick: () => setMode("player") }, "I'm playing a character"), /* @__PURE__ */ import_react.default.createElement("p", { style: { fontSize: 12, color: T.deckWhiteDim, marginTop: "2rem", lineHeight: 1.6 } }, "Everyone opens this same link on their phone. Roles are drawn at random \u2014 nobody reads the answer until the final reveal.")));
   }
