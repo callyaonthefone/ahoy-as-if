@@ -54757,7 +54757,6 @@
     "Dirk Lassiter",
     "Captain Roman Vega",
     "Bunny Caprice",
-    "Trish Okafor-Lindqvist",
     "Finn Delacroix",
     "Constance Whitmore",
     "Lou Pellegrino"
@@ -54861,7 +54860,7 @@
     {
       name: "Trish Okafor-Lindqvist",
       role: "Lounge Singer",
-      required: true,
+      required: false,
       costume: "Sequined gown, long gloves, oversized statement earrings, feather boa.",
       round1: {
         share: [
@@ -55307,7 +55306,8 @@
     victim: null,
     murderer: null,
     activeCharacters: null,
-    rosterConfirmed: false
+    rosterConfirmed: false,
+    accusations: {}
   };
   function useGameState(firebaseConfig) {
     const [state, setState] = (0, import_react.useState)(DEFAULT_STATE);
@@ -55380,10 +55380,22 @@
     const confirmRoster = (0, import_react.useCallback)((activeNames) => {
       save({ activeCharacters: activeNames, rosterConfirmed: true });
     }, [save]);
+    const submitAccusation = (0, import_react.useCallback)((characterName, whodunit) => {
+      setState((prev) => {
+        const next = {
+          ...prev,
+          accusations: { ...prev.accusations || {}, [characterName]: whodunit }
+        };
+        if (refRef.current) {
+          refRef.current.set(next).catch((e2) => console.error("Failed to save accusation", e2));
+        }
+        return next;
+      });
+    }, []);
     const resetGame = (0, import_react.useCallback)(() => {
       save({ phase: 0, rolesAssigned: false, revealed: false, victim: null, murderer: null, activeCharacters: null, rosterConfirmed: false });
     }, [save]);
-    return { state, loaded, connectionError, advancePhase, assignRoles, triggerReveal, resetGame, confirmRoster };
+    return { state, loaded, connectionError, advancePhase, assignRoles, triggerReveal, resetGame, confirmRoster, submitAccusation };
   }
   var FONTS_LINK = "https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap";
   var T3 = {
@@ -55810,6 +55822,45 @@ Present your solutions. The guilty party speaks last.`
     7: null
     // Final reveal — handled separately
   };
+  function AccusationsViewer({ accusations, activeCharacters, allCharacters }) {
+    const [expanded, setExpanded] = (0, import_react.useState)(false);
+    const active = allCharacters.filter((c4) => !activeCharacters || activeCharacters.includes(c4.name));
+    const submitted = active.filter((c4) => accusations && accusations[c4.name]);
+    const pending = active.filter((c4) => !accusations || !accusations[c4.name]);
+    const total = active.length;
+    return /* @__PURE__ */ import_react.default.createElement("div", { style: {
+      background: T3.porthole,
+      border: `1px solid ${T3.brassDim}`,
+      borderRadius: 10,
+      marginBottom: "1.75rem",
+      overflow: "hidden"
+    } }, /* @__PURE__ */ import_react.default.createElement(
+      "button",
+      {
+        onClick: () => setExpanded((e2) => !e2),
+        style: {
+          width: "100%",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "14px 18px",
+          background: "transparent",
+          border: "none",
+          cursor: "pointer",
+          textAlign: "left"
+        }
+      },
+      /* @__PURE__ */ import_react.default.createElement("div", null, /* @__PURE__ */ import_react.default.createElement("div", { style: { ...display, fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: T3.brass, marginBottom: 3 } }, "Accusations"), /* @__PURE__ */ import_react.default.createElement("div", { style: { ...display, fontSize: 15, fontWeight: 600, color: T3.deckWhite, textTransform: "uppercase" } }, submitted.length, " of ", total, " submitted")),
+      /* @__PURE__ */ import_react.default.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10 } }, submitted.length === total && /* @__PURE__ */ import_react.default.createElement("span", { style: { fontSize: 12, color: T3.foam, ...display, fontWeight: 600, letterSpacing: "0.05em" } }, "ALL IN \u2713"), /* @__PURE__ */ import_react.default.createElement("span", { style: { color: T3.brass, fontSize: 18 } }, expanded ? "\u25B2" : "\u25BC"))
+    ), expanded && /* @__PURE__ */ import_react.default.createElement("div", { style: { padding: "0 18px 18px" } }, /* @__PURE__ */ import_react.default.createElement("div", { style: { borderTop: `1px dashed rgba(201,162,75,0.3)`, paddingTop: 14 } }, submitted.length === 0 && /* @__PURE__ */ import_react.default.createElement("p", { style: { fontSize: 14, color: T3.deckWhiteDim, fontStyle: "italic", margin: 0 } }, "No accusations submitted yet."), submitted.map((c4) => /* @__PURE__ */ import_react.default.createElement("div", { key: c4.name, style: {
+      background: "rgba(243,239,227,0.05)",
+      border: `1px solid rgba(243,239,227,0.12)`,
+      borderLeft: `3px solid ${T3.brass}`,
+      borderRadius: 6,
+      padding: "10px 14px",
+      marginBottom: 8
+    } }, /* @__PURE__ */ import_react.default.createElement("div", { style: { ...display, fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: T3.brass, marginBottom: 4 } }, c4.name), /* @__PURE__ */ import_react.default.createElement("div", { style: { fontSize: 14, color: T3.deckWhite, lineHeight: 1.5, ...serif } }, accusations[c4.name]))), pending.length > 0 && /* @__PURE__ */ import_react.default.createElement("div", { style: { marginTop: 10 } }, /* @__PURE__ */ import_react.default.createElement("div", { style: { ...display, fontSize: 10, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: T3.deckWhiteDim, marginBottom: 6 } }, "Still pending"), /* @__PURE__ */ import_react.default.createElement("div", { style: { fontSize: 13, color: T3.deckWhiteDim } }, pending.map((c4) => c4.name.split(" ")[0]).join(", "))))));
+  }
   function HostView({ state, advancePhase, assignRoles, triggerReveal, resetGame, onExit, confirmRoster, onShowRoster }) {
     const [confirmReveal, setConfirmReveal] = (0, import_react.useState)(false);
     const { phase, rolesAssigned, revealed, victim, murderer, rosterConfirmed, activeCharacters } = state;
@@ -55829,7 +55880,14 @@ Present your solutions. The guilty party speaks last.`
         }
       },
       "Ahoy, As If!"
-    ), /* @__PURE__ */ import_react.default.createElement("p", { style: { fontSize: 15, color: T3.deckWhiteDim, margin: "0 0 1.75rem", lineHeight: 1.6, fontStyle: "italic" } }, revealed ? "The case is closed and the answer is shown below." : "This screen never shows who the victim or murderer is. The app drew them at random when roles were assigned \u2014 nobody, including the bridge, can see the answer until the final reveal is called."), /* @__PURE__ */ import_react.default.createElement(NarratorCard, { phase }), !rosterConfirmed && !rolesAssigned && /* @__PURE__ */ import_react.default.createElement(
+    ), /* @__PURE__ */ import_react.default.createElement("p", { style: { fontSize: 15, color: T3.deckWhiteDim, margin: "0 0 1.75rem", lineHeight: 1.6, fontStyle: "italic" } }, revealed ? "The case is closed and the answer is shown below." : "This screen never shows who the victim or murderer is. The app drew them at random when roles were assigned \u2014 nobody, including the bridge, can see the answer until the final reveal is called."), /* @__PURE__ */ import_react.default.createElement(NarratorCard, { phase }), phase >= 5 && /* @__PURE__ */ import_react.default.createElement(
+      AccusationsViewer,
+      {
+        accusations: state.accusations || {},
+        activeCharacters: state.activeCharacters,
+        allCharacters: CHARACTERS
+      }
+    ), !rosterConfirmed && !rolesAssigned && /* @__PURE__ */ import_react.default.createElement(
       "div",
       {
         style: {
@@ -56096,7 +56154,7 @@ Present your solutions. The guilty party speaks last.`
       /* @__PURE__ */ import_react.default.createElement("div", { style: { fontSize: 15, lineHeight: 1.65, color: T3.deckWhite, ...serif } }, children)
     );
   }
-  function InvestigationSheet({ characters }) {
+  function InvestigationSheet({ characters, characterName, onSubmit }) {
     const [rows, setRows] = (0, import_react.useState)(
       characters.map((c4) => ({ name: c4.name, motive: "", evidence: "" }))
     );
@@ -56216,7 +56274,10 @@ Present your solutions. The guilty party speaks last.`
           resize: "vertical"
         }
       }
-    )), /* @__PURE__ */ import_react.default.createElement(PrimaryButton, { full: true, onClick: () => setSubmitted(true), disabled: !whodunit.trim() }, "Lock in my accusation"));
+    )), /* @__PURE__ */ import_react.default.createElement(PrimaryButton, { full: true, onClick: () => {
+      setSubmitted(true);
+      if (onSubmit && characterName) onSubmit(characterName, whodunit.trim());
+    }, disabled: !whodunit.trim() }, "Lock in my accusation"));
   }
   function RosterSetupScreen({ allCharacters, onConfirm }) {
     const [active, setActive] = (0, import_react.useState)(
@@ -56297,7 +56358,6 @@ Present your solutions. The guilty party speaks last.`
   var R3_BASE_ORDER = [
     "Dirk Lassiter",
     "Captain Roman Vega",
-    "Trish Okafor-Lindqvist",
     "Finn Delacroix",
     "Lou Pellegrino",
     "Constance Whitmore",
@@ -56312,7 +56372,7 @@ Present your solutions. The guilty party speaks last.`
     }
     return { chain, fullOrder };
   }
-  function PlayerView({ character, gameState, onChangeCharacter, activeCharactersList }) {
+  function PlayerView({ character, gameState, onChangeCharacter, activeCharactersList, onSubmitAccusation }) {
     const c4 = CHARACTERS.find((ch) => ch.name === character);
     if (!c4) return null;
     const { phase, rolesAssigned, revealed, victim, murderer, activeCharacters } = gameState;
@@ -56320,14 +56380,58 @@ Present your solutions. The guilty party speaks last.`
     const amVictim = rolesAssigned && victim === c4.name;
     const amMurderer = rolesAssigned && murderer === c4.name;
     const amSpecial = amVictim || amMurderer;
-    return /* @__PURE__ */ import_react.default.createElement(PageShell, null, /* @__PURE__ */ import_react.default.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 14 } }, /* @__PURE__ */ import_react.default.createElement(Eyebrow, { color: T3.foam }, PHASES[phase].short), /* @__PURE__ */ import_react.default.createElement(GhostLink, { onClick: onChangeCharacter }, "Not you?")), /* @__PURE__ */ import_react.default.createElement(TicketCard, { eyebrow: "Boarding pass", title: c4.name, subtitle: c4.role, accent: T3.brass }, phase === 0 && /* @__PURE__ */ import_react.default.createElement(import_react.default.Fragment, null, /* @__PURE__ */ import_react.default.createElement("p", { style: { fontSize: 15, color: T3.ink, margin: "0 0 10px", lineHeight: 1.6, ...serif } }, "The party hasn't started yet. Your costume idea: ", /* @__PURE__ */ import_react.default.createElement("em", null, c4.costume)), /* @__PURE__ */ import_react.default.createElement("p", { style: { fontSize: 15, color: T3.inkDim, margin: 0, lineHeight: 1.6, ...serif, fontStyle: "italic" } }, "Wait for the bridge to start Round One \u2014 this screen updates on its own.")), phase >= 1 && /* @__PURE__ */ import_react.default.createElement(import_react.default.Fragment, null, /* @__PURE__ */ import_react.default.createElement(ClueBlock, { title: "Share with others", items: c4.round1.share }), /* @__PURE__ */ import_react.default.createElement(ClueBlock, { title: "You may conceal", items: c4.round1.conceal, tone: "conceal" }))), phase >= 2 && /* @__PURE__ */ import_react.default.createElement(TicketCard, { eyebrow: "Round two", title: "Before the toast", accent: T3.foam }, /* @__PURE__ */ import_react.default.createElement(ClueBlock, { title: "Share with others", items: c4.round2pre?.share })), phase === 2 && c4.required && /* @__PURE__ */ import_react.default.createElement(
+    return /* @__PURE__ */ import_react.default.createElement(PageShell, null, showPasswordModal && /* @__PURE__ */ import_react.default.createElement("div", { style: {
+      position: "fixed",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: "rgba(10,31,46,0.92)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 1e3,
+      padding: "0 24px"
+    } }, /* @__PURE__ */ import_react.default.createElement("div", { style: {
+      background: T3.harbor,
+      border: `2px solid ${T3.brass}`,
+      borderRadius: 12,
+      padding: "1.5rem",
+      width: "100%",
+      maxWidth: 340
+    } }, /* @__PURE__ */ import_react.default.createElement("div", { style: { ...display, fontSize: 14, fontWeight: 600, color: T3.deckWhite, textTransform: "uppercase", marginBottom: 6 } }, "Switch character?"), /* @__PURE__ */ import_react.default.createElement("p", { style: { fontSize: 14, color: T3.deckWhiteDim, margin: "0 0 16px", lineHeight: 1.5, ...serif } }, "Enter the host password to switch characters."), /* @__PURE__ */ import_react.default.createElement(
+      "input",
+      {
+        type: "password",
+        value: passwordInput,
+        onChange: (e2) => {
+          setPasswordInput(e2.target.value);
+          setPasswordError(false);
+        },
+        onKeyDown: (e2) => e2.key === "Enter" && handlePasswordSubmit(),
+        placeholder: "Password",
+        autoFocus: true,
+        style: {
+          width: "100%",
+          fontSize: 16,
+          padding: "10px 12px",
+          border: `1.5px solid ${passwordError ? T3.coral : T3.brassDim}`,
+          borderRadius: 6,
+          background: "#fff",
+          color: T3.ink,
+          marginBottom: passwordError ? 6 : 14,
+          boxSizing: "border-box",
+          fontFamily: "inherit"
+        }
+      }
+    ), passwordError && /* @__PURE__ */ import_react.default.createElement("p", { style: { fontSize: 13, color: T3.coral, margin: "0 0 12px", ...serif } }, "Wrong password. Ask the host."), /* @__PURE__ */ import_react.default.createElement("div", { style: { display: "flex", gap: 10 } }, /* @__PURE__ */ import_react.default.createElement(PrimaryButton, { full: true, onClick: handlePasswordSubmit }, "Confirm"), /* @__PURE__ */ import_react.default.createElement(SecondaryButton, { full: true, onClick: () => setShowPasswordModal(false) }, "Cancel")))), /* @__PURE__ */ import_react.default.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 14 } }, /* @__PURE__ */ import_react.default.createElement(Eyebrow, { color: T3.foam }, PHASES[phase].short), /* @__PURE__ */ import_react.default.createElement(GhostLink, { onClick: handleChangeRequest }, "Not you?")), /* @__PURE__ */ import_react.default.createElement(TicketCard, { eyebrow: "Boarding pass", title: c4.name, subtitle: c4.role, accent: T3.brass }, phase === 0 && /* @__PURE__ */ import_react.default.createElement(import_react.default.Fragment, null, /* @__PURE__ */ import_react.default.createElement("p", { style: { fontSize: 15, color: T3.ink, margin: "0 0 10px", lineHeight: 1.6, ...serif } }, "The party hasn't started yet. Your costume idea: ", /* @__PURE__ */ import_react.default.createElement("em", null, c4.costume)), /* @__PURE__ */ import_react.default.createElement("p", { style: { fontSize: 15, color: T3.inkDim, margin: 0, lineHeight: 1.6, ...serif, fontStyle: "italic" } }, "Wait for the bridge to start Round One \u2014 this screen updates on its own.")), phase >= 1 && /* @__PURE__ */ import_react.default.createElement(import_react.default.Fragment, null, /* @__PURE__ */ import_react.default.createElement(ClueBlock, { title: "Share with others", items: c4.round1.share }), /* @__PURE__ */ import_react.default.createElement(ClueBlock, { title: "You may conceal", items: c4.round1.conceal, tone: "conceal" }))), phase >= 2 && /* @__PURE__ */ import_react.default.createElement(TicketCard, { eyebrow: "Round two", title: "Before the toast", accent: T3.foam }, /* @__PURE__ */ import_react.default.createElement(ClueBlock, { title: "Share with others", items: c4.round2pre?.share })), phase === 2 && c4.required && /* @__PURE__ */ import_react.default.createElement(
       PrivateNote,
       {
         label: "Private check \u2014 only you see this",
         tone: amMurderer ? "murderer" : "victim"
       },
       !rolesAssigned ? /* @__PURE__ */ import_react.default.createElement("p", { style: { margin: 0 } }, "The bridge hasn't drawn roles yet. Check back once Round Two has properly begun.") : amVictim ? /* @__PURE__ */ import_react.default.createElement("p", { style: { margin: 0 } }, "You are secretly the victim. Don't tell anyone yet! After speaking to a few people during this round (~15\u201320 minutes), accept a glass of champagne during the toast as your character naturally would. Then slip away toward the nearest bathroom \u2014 you'll find a box there with your victim sign and any props. Get set up, then return to the party and collapse near the entertainment booth or dessert table. From that point on, speak only through gestures \u2014 your victim sign appears on your phone below once the murder phase begins.") : /* @__PURE__ */ import_react.default.createElement("p", { style: { margin: 0 } }, "You are not the victim or the murderer this game. Carry on with your card above as normal.")
-    ), phase >= 3 && amVictim && /* @__PURE__ */ import_react.default.createElement(TicketCard, { eyebrow: "Victim sign \u2014 show this, don't speak", accent: T3.coral }, /* @__PURE__ */ import_react.default.createElement("p", { style: { fontSize: 15, lineHeight: 1.65, margin: "0 0 10px", color: T3.ink, ...serif, fontStyle: "italic" } }, '"I really did just want to clear the air."'), /* @__PURE__ */ import_react.default.createElement("p", { style: { fontSize: 15, lineHeight: 1.65, margin: "0 0 10px", color: T3.ink, ...serif } }, "You're found collapsed near the entertainment booth or dessert table, a half-finished glass of champagne nearby."), /* @__PURE__ */ import_react.default.createElement("p", { style: { fontSize: 15, lineHeight: 1.65, margin: "0 0 10px", color: T3.ink, ...serif } }, "Cause of death appears to be sudden cardiac distress brought on by a sedative \u2014 no wound, no blood, just someone who suddenly felt unwell and went down fast."), /* @__PURE__ */ import_react.default.createElement("p", { style: { fontSize: 15, lineHeight: 1.65, margin: 0, color: T3.ink, ...serif } }, `You can still "help" investigate through gestures. The party isn't over for you yet.`)), phase >= 4 && !amVictim && c4.round2post && /* @__PURE__ */ import_react.default.createElement(TicketCard, { eyebrow: "Round two", title: "Investigation", accent: T3.brass }, /* @__PURE__ */ import_react.default.createElement(ClueBlock, { title: "Share with others", items: c4.round2post.share }), /* @__PURE__ */ import_react.default.createElement(ClueBlock, { title: "Only if pressed directly", items: c4.round2post.conceal, tone: "conceal" })), phase >= 4 && c4.isExaminer && /* @__PURE__ */ import_react.default.createElement(TicketCard, { eyebrow: "Read this aloud", title: "Evidence report", accent: T3.foam }, /* @__PURE__ */ import_react.default.createElement("ul", { style: { margin: 0, paddingLeft: 18 } }, EVIDENCE_REPORT.map((line, i4) => /* @__PURE__ */ import_react.default.createElement("li", { key: i4, style: { fontSize: 14, color: T3.ink, marginBottom: 10, lineHeight: 1.6, ...serif } }, line)))), phase === 5 && /* @__PURE__ */ import_react.default.createElement(import_react.default.Fragment, null, /* @__PURE__ */ import_react.default.createElement(TicketCard, { accent: T3.brass }, /* @__PURE__ */ import_react.default.createElement("p", { style: { fontSize: 15, color: T3.ink, margin: 0, lineHeight: 1.6, ...serif } }, "Fill in your investigation sheet below and commit to your accusation \u2014 then wait for the bridge to start Round Three.")), /* @__PURE__ */ import_react.default.createElement(InvestigationSheet, { characters: CHARACTERS.filter((ch) => !effectiveActiveList || effectiveActiveList.includes(ch.name)) })), phase >= 6 && !amSpecial && c4.required && (() => {
+    ), phase >= 3 && amVictim && /* @__PURE__ */ import_react.default.createElement(TicketCard, { eyebrow: "Victim sign \u2014 show this, don't speak", accent: T3.coral }, /* @__PURE__ */ import_react.default.createElement("p", { style: { fontSize: 15, lineHeight: 1.65, margin: "0 0 10px", color: T3.ink, ...serif, fontStyle: "italic" } }, '"I really did just want to clear the air."'), /* @__PURE__ */ import_react.default.createElement("p", { style: { fontSize: 15, lineHeight: 1.65, margin: "0 0 10px", color: T3.ink, ...serif } }, "You're found collapsed near the entertainment booth or dessert table, a half-finished glass of champagne nearby."), /* @__PURE__ */ import_react.default.createElement("p", { style: { fontSize: 15, lineHeight: 1.65, margin: "0 0 10px", color: T3.ink, ...serif } }, "Cause of death appears to be sudden cardiac distress brought on by a sedative \u2014 no wound, no blood, just someone who suddenly felt unwell and went down fast."), /* @__PURE__ */ import_react.default.createElement("p", { style: { fontSize: 15, lineHeight: 1.65, margin: 0, color: T3.ink, ...serif } }, `You can still "help" investigate through gestures. The party isn't over for you yet.`)), phase >= 4 && !amVictim && c4.round2post && /* @__PURE__ */ import_react.default.createElement(TicketCard, { eyebrow: "Round two", title: "Investigation", accent: T3.brass }, /* @__PURE__ */ import_react.default.createElement(ClueBlock, { title: "Share with others", items: c4.round2post.share }), /* @__PURE__ */ import_react.default.createElement(ClueBlock, { title: "Only if pressed directly", items: c4.round2post.conceal, tone: "conceal" })), phase >= 4 && c4.isExaminer && /* @__PURE__ */ import_react.default.createElement(TicketCard, { eyebrow: "Read this aloud", title: "Evidence report", accent: T3.foam }, /* @__PURE__ */ import_react.default.createElement("ul", { style: { margin: 0, paddingLeft: 18 } }, EVIDENCE_REPORT.map((line, i4) => /* @__PURE__ */ import_react.default.createElement("li", { key: i4, style: { fontSize: 14, color: T3.ink, marginBottom: 10, lineHeight: 1.6, ...serif } }, line)))), phase === 5 && /* @__PURE__ */ import_react.default.createElement(import_react.default.Fragment, null, /* @__PURE__ */ import_react.default.createElement(TicketCard, { accent: T3.brass }, /* @__PURE__ */ import_react.default.createElement("p", { style: { fontSize: 15, color: T3.ink, margin: 0, lineHeight: 1.6, ...serif } }, "Fill in your investigation sheet below and commit to your accusation \u2014 then wait for the bridge to start Round Three.")), /* @__PURE__ */ import_react.default.createElement(InvestigationSheet, { characters: CHARACTERS.filter((ch) => !effectiveActiveList || effectiveActiveList.includes(ch.name)), characterName: c4.name, onSubmit: onSubmitAccusation })), phase >= 6 && !amSpecial && c4.required && (() => {
       const { chain: r3chain, fullOrder } = buildR3Chain(victim, murderer);
       const nextName = r3chain[c4.name];
       const isLastCleared = nextName === victim || nextName === murderer;
@@ -56509,7 +56613,7 @@ Present your solutions. The guilty party speaks last.`
       }
       setConfigState("needsSetup");
     }, []);
-    const { state, loaded, connectionError, advancePhase, assignRoles, triggerReveal, resetGame, confirmRoster } = useGameState(configState === "ready" ? firebaseConfig : null);
+    const { state, loaded, connectionError, advancePhase, assignRoles, triggerReveal, resetGame, confirmRoster, submitAccusation } = useGameState(configState === "ready" ? firebaseConfig : null);
     const [mode, setMode] = (0, import_react.useState)(null);
     const [character, setCharacter] = (0, import_react.useState)(null);
     if (configState === "resolving") return /* @__PURE__ */ import_react.default.createElement(PageShell, null, /* @__PURE__ */ import_react.default.createElement("p", { style: { textAlign: "center", color: T3.deckWhiteDim, fontStyle: "italic" } }, "Loading..."));
@@ -56539,7 +56643,7 @@ Present your solutions. The guilty party speaks last.`
     if (mode === "host") return /* @__PURE__ */ import_react.default.createElement(HostView, { state, advancePhase, assignRoles, triggerReveal, resetGame, onExit: () => setMode(null), confirmRoster, onShowRoster: () => setShowRosterScreen(true) });
     if (mode === "player") {
       if (!character) return /* @__PURE__ */ import_react.default.createElement(CharacterPicker, { onPick: (name) => setCharacter(name), activeCharacters: state.activeCharacters });
-      return /* @__PURE__ */ import_react.default.createElement(PlayerView, { character, gameState: state, onChangeCharacter: () => setCharacter(null), activeCharactersList: state.activeCharacters });
+      return /* @__PURE__ */ import_react.default.createElement(PlayerView, { character, gameState: state, onChangeCharacter: () => setCharacter(null), activeCharactersList: state.activeCharacters, onSubmitAccusation: submitAccusation });
     }
     return /* @__PURE__ */ import_react.default.createElement(PageShell, { maxWidth: 420 }, /* @__PURE__ */ import_react.default.createElement("div", { style: { textAlign: "center" } }, /* @__PURE__ */ import_react.default.createElement(Eyebrow, { color: T3.foam }, /* @__PURE__ */ import_react.default.createElement(Anchor, null), "MS Sapphire Wanderer"), /* @__PURE__ */ import_react.default.createElement("h1", { style: { ...display, fontSize: 28, fontWeight: 700, margin: "12px 0 8px", color: T3.deckWhite, textTransform: "uppercase", lineHeight: 1.15 } }, "Ahoy,", /* @__PURE__ */ import_react.default.createElement("br", null), "As If!"), /* @__PURE__ */ import_react.default.createElement("p", { style: { fontSize: 15, color: T3.deckWhiteDim, marginBottom: "2rem", lineHeight: 1.6, fontStyle: "italic" } }, "Are you running the party, or playing a character tonight?"), /* @__PURE__ */ import_react.default.createElement("div", { style: { marginBottom: 12 } }, /* @__PURE__ */ import_react.default.createElement(PrimaryButton, { full: true, onClick: () => setMode("host") }, "I'm hosting \u2014 open the bridge")), /* @__PURE__ */ import_react.default.createElement(SecondaryButton, { full: true, onClick: () => setMode("player") }, "I'm playing a character"), /* @__PURE__ */ import_react.default.createElement("p", { style: { fontSize: 12, color: T3.deckWhiteDim, marginTop: "2rem", lineHeight: 1.6 } }, "Everyone opens this same link on their phone. Roles are drawn at random \u2014 nobody reads the answer until the final reveal.")));
   }
