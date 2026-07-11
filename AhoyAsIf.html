@@ -56380,6 +56380,23 @@ Present your solutions. The guilty party speaks last.`
     const amVictim = rolesAssigned && victim === c4.name;
     const amMurderer = rolesAssigned && murderer === c4.name;
     const amSpecial = amVictim || amMurderer;
+    const [showPasswordModal, setShowPasswordModal] = (0, import_react.useState)(false);
+    const [passwordInput, setPasswordInput] = (0, import_react.useState)("");
+    const [passwordError, setPasswordError] = (0, import_react.useState)(false);
+    const handleChangeRequest = () => {
+      setPasswordInput("");
+      setPasswordError(false);
+      setShowPasswordModal(true);
+    };
+    const handlePasswordSubmit = () => {
+      if (passwordInput.toLowerCase().trim() === "ahoy") {
+        setShowPasswordModal(false);
+        onChangeCharacter();
+      } else {
+        setPasswordError(true);
+        setPasswordInput("");
+      }
+    };
     return /* @__PURE__ */ import_react.default.createElement(PageShell, null, showPasswordModal && /* @__PURE__ */ import_react.default.createElement("div", { style: {
       position: "fixed",
       top: 0,
